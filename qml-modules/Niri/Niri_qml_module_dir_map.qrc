@@ -1,0 +1,6 @@
+<RCC>
+  <qresource prefix="/">
+    <file alias="/qt/qml/Niri">/home/yoti/.config/quickshell/niri-simple-bar/qml-niri/build/Niri</file>
+
+  </qresource>
+</RCC>
