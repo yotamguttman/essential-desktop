@@ -20,6 +20,4 @@ ShellRoot {
         id: statusbar
         niri: niri
     }
-
-
 }

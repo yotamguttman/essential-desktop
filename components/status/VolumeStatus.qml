@@ -12,6 +12,9 @@ StatusButton {
     property bool muted: false
     property int volumePercent: 0
 
+    topRightRadius: hovered ? 0 : theme.radiusSmall
+    bottomRightRadius: hovered ? 0 : theme.radiusSmall
+
     property string iconPath:
         muted ? "../core/icons/volume-mute.svg" :
         volumePercent >= 50 ? "../core/icons/speaker-high.svg" :
@@ -22,6 +25,7 @@ StatusButton {
         toggleProc.exec(["wpctl", "set-mute", "@DEFAULT_AUDIO_SINK@", "toggle"])
         refreshTimer.restart()
     }
+    
 
     Process {
         id: volumeProc

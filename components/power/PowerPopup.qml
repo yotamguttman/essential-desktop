@@ -15,6 +15,7 @@ PopupWindow {
     signal clicked
 
     property var anchorWindow
+    property var powerButton
     property int buttonSize: theme.buttonSize
     property int hoverBridge: 12
     property bool triggerHovered: false
@@ -69,6 +70,43 @@ PopupWindow {
     Row {
         id: buttons
         spacing: 6
+
+        Rectangle {
+            id: shutdownLabelContainer
+
+            width: shutdownLabel.width + theme.paddingM
+            height: root.buttonSize
+
+            color: theme.bgPrimary
+            border.width: theme.borderWidth
+            border.color: theme.bgBorder
+            opacity: theme.panelOpacity
+            
+            topLeftRadius: 0
+            bottomLeftRadius: 0
+            topRightRadius: theme.radiusSmall
+            bottomRightRadius: theme.radiusSmall
+            clip: true
+
+            Rectangle {
+                anchors.left: parent.left
+                anchors.top: parent.top
+                anchors.bottom: parent.bottom
+                width: parent.width * (root.powerButton ? root.powerButton.holdProgress : 0)
+                color: theme.urgentColor
+                opacity: 0.35
+            }
+
+            Text {
+                id: shutdownLabel
+
+                anchors.centerIn: parent
+                color: theme.fgPrimary
+                font.pixelSize: theme.textSizeM
+
+                text: "Hold to shutdown"
+            }
+        }
 
         StatusButton {
             id: lock

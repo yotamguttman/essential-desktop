@@ -52,196 +52,96 @@ PopupWindow {
 
     Row {
         id: buttons
-        spacing: 6
+        spacing: theme.gapM
     
-        Rectangle {
-            id: bluetoothConnect
+        SliderControl {
+            id: volumeSlider
 
-            property real volume: 0.5
-
-            function clampVolume(v) {
-                return Math.max(0, Math.min(1, v));
-            }
-
-            function updateVolumeFromX(xPos) {
-                const local = xPos - volumeTrack.x;
-                const ratio = local / volumeTrack.width;
-                volume = clampVolume(ratio);
-            }
-
-            function applySystemVolume() {
-                setVolumeProc.exec([
-                    "wpctl", "set-volume", "@DEFAULT_AUDIO_SINK@", volume.toFixed(2)
-                ]);
-            }
-
-            width: 200
             height: root.buttonSize
-            radius: theme.radiusSmall
-            opacity: theme.panelOpacity
+            getCmd: "wpctl get-volume @DEFAULT_AUDIO_SINK@ | awk '{print $2}'"
+            setCmd: "wpctl set-volume @DEFAULT_AUDIO_SINK@ $VALUE"
+        }
 
-            color: volumeMouse.containsMouse ? theme.bgHover : theme.bgPrimary
-            border.width: theme.borderWidth
-            border.color: theme.bgBorder
+        Row {
+            id: micControls
 
-            Behavior on color {
-                ColorAnimation { duration: 120 }
-            }
+            StatusButton {
+                id: micStatus
 
-            Process {
-                id: getVolumeProc
+                property bool muted: false
+                property string iconPath: muted
+                    ? "../core/icons/microphone-mute.svg"
+                    : "../core/icons/microphone-on.svg"
 
-                stdout: StdioCollector {
-                    onStreamFinished: {
-                        const out = text.trim();
-                        if (!out)
-                            return;
+                width: root.buttonSize
+                height: root.buttonSize
 
-                        const parsed = parseFloat(out);
-                        if (!Number.isNaN(parsed))
-                            bluetoothConnect.volume = bluetoothConnect.clampVolume(parsed);
+                topRightRadius: 0
+                bottomRightRadius: 0
+
+                onClicked: {
+                    toggleProc.exec(["wpctl", "set-mute", "@DEFAULT_AUDIO_SOURCE@", "toggle"])
+                    refreshTimer.restart()
+                }
+
+                Process {
+                    id: micProc
+
+                    stdout: StdioCollector {
+                        onStreamFinished: {
+                            const out = text.trim()
+
+                            if (!out) {
+                                micStatus.muted = false
+                                return
+                            }
+
+                            micStatus.muted = out === "yes"
+                        }
+                    }
+                }
+
+                Process {
+                    id: toggleProc
+                }
+
+                Timer {
+                    id: refreshTimer
+                    interval: 500
+                    running: true
+                    repeat: true
+                    triggeredOnStart: true
+
+                    onTriggered: {
+                        micProc.exec([
+                            "sh", "-c",
+                            "wpctl get-volume @DEFAULT_AUDIO_SOURCE@ | awk '{print ($3==\"[MUTED]\"?\"yes\":\"no\")}'"
+                        ])
+                    }
+                }
+
+                content: Component {
+                    Image {
+                        width: 16
+                        height: 16
+                        source: micStatus.iconPath
+                        fillMode: Image.PreserveAspectFit
+                        smooth: true
                     }
                 }
             }
 
-            Process {
-                id: setVolumeProc
+            SliderControl {
+                id: micVolumeSlider
+
+                height: root.buttonSize
+                width: 160
+                getCmd: "wpctl get-volume @DEFAULT_AUDIO_SOURCE@ | awk '{print $2}'"
+                setCmd: "wpctl set-volume @DEFAULT_AUDIO_SOURCE@ $VALUE"
             }
-
-            Timer {
-                id: volumePoll
-                interval: 800
-                running: !volumeMouse.pressed
-                repeat: true
-                triggeredOnStart: true
-
-                onTriggered: {
-                    getVolumeProc.exec([
-                        "sh", "-c",
-                        "wpctl get-volume @DEFAULT_AUDIO_SINK@ | awk '{print $2}'"
-                    ]);
-                }
-            }
-
-            Rectangle {
-                id: volumeTrack
-                anchors.verticalCenter: parent.verticalCenter
-                anchors.left: parent.left
-                anchors.leftMargin: 14
-                anchors.right: parent.right
-                anchors.rightMargin: 14
-                height: 4
-                radius: 2
-                color: theme.bgSecondary
-            }
-
-            Rectangle {
-                anchors.left: volumeTrack.left
-                anchors.verticalCenter: volumeTrack.verticalCenter
-                width: volumeTrack.width * bluetoothConnect.volume
-                height: volumeTrack.height
-                radius: volumeTrack.radius
-                color: theme.accent
-            }
-
-            Rectangle {
-                id: volumeKnob
-                width: 14
-                height: 14
-                radius: 7
-                color: theme.fgPrimary
-                border.width: 1
-                border.color: theme.bgBorder
-                x: volumeTrack.x + (volumeTrack.width * bluetoothConnect.volume) - (width / 2)
-                y: (parent.height - height) / 2
-            }
-
-            MouseArea {
-                id: volumeMouse
-                anchors.fill: parent
-                hoverEnabled: true
-                cursorShape: Qt.PointingHandCursor
-
-                onPressed: function(mouse) {
-                    bluetoothConnect.updateVolumeFromX(mouse.x);
-                    bluetoothConnect.applySystemVolume();
-                }
-
-                onPositionChanged: function(mouse) {
-                    if (pressed) {
-                        bluetoothConnect.updateVolumeFromX(mouse.x);
-                        bluetoothConnect.applySystemVolume();
-                    }
-                }
-
-                onReleased: bluetoothConnect.applySystemVolume()
-            }
+        
         }
         
-        StatusButton {
-            id: micStatus
-
-            property bool muted: false
-            property string iconPath: muted
-                ? "../core/icons/microphone-mute.svg"
-                : "../core/icons/microphone-on.svg"
-
-            width: root.buttonSize
-            height: root.buttonSize
-
-            onClicked: {
-                toggleProc.exec(["wpctl", "set-mute", "@DEFAULT_AUDIO_SOURCE@", "toggle"])
-                refreshTimer.restart()
-            }
-
-            Process {
-                id: micProc
-
-                stdout: StdioCollector {
-                    onStreamFinished: {
-                        const out = text.trim()
-
-                        if (!out) {
-                            micStatus.muted = false
-                            return
-                        }
-
-                        micStatus.muted = out === "yes"
-                    }
-                }
-            }
-
-            Process {
-                id: toggleProc
-            }
-
-            Timer {
-                id: refreshTimer
-                interval: 500
-                running: true
-                repeat: true
-                triggeredOnStart: true
-
-                onTriggered: {
-                    micProc.exec([
-                        "sh", "-c",
-                        "wpctl get-volume @DEFAULT_AUDIO_SOURCE@ | awk '{print ($3==\"[MUTED]\"?\"yes\":\"no\")}'"
-                    ])
-                }
-            }
-
-            content: Component {
-                Image {
-                    width: 16
-                    height: 16
-                    source: micStatus.iconPath
-                    fillMode: Image.PreserveAspectFit
-                    smooth: true
-                }
-            }
-        }
-
-  
     }
 
     HoverHandler {

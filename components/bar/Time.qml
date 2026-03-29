@@ -1,26 +1,42 @@
 pragma ComponentBehavior: Bound
 
 import QtQuick
+import Quickshell.Io
 import "../core"
 
 StatusButton {
     id: root
+    height: parent.width * 1.5
+
+    onClicked: {
+        launchClockProc.exec(["gnome-clocks"])
+    }
     
     Theme {
         id: theme
     }
 
     property bool hovered: timeHover.hovered
+
+    Process {
+        id: launchClockProc
+    }
     
     content: Component {
-        Item {
-            width: parent.width
-            height: parent.height
+        Column {
+            anchors.centerIn: parent
+            spacing: 0
 
             Text {
-                id: label
-                anchors.centerIn: parent
-                text: Qt.formatDateTime(new Date(), "HH:mm")
+                id: hour
+                text: Qt.formatDateTime(new Date(), "HH")
+                color: theme.fgPrimary
+                font.pixelSize: 11
+            }
+
+            Text {
+                id: minute
+                text: Qt.formatDateTime(new Date(), "mm")
                 color: theme.fgPrimary
                 font.pixelSize: 11
             }
@@ -29,7 +45,10 @@ StatusButton {
                 interval: 1000
                 running: true
                 repeat: true
-                onTriggered: label.text = Qt.formatDateTime(new Date(), "HH:mm")
+                onTriggered: {
+                    hour.text = Qt.formatDateTime(new Date(), "HH")
+                    minute.text = Qt.formatDateTime(new Date(), "mm")
+                }
             }
         }
     }

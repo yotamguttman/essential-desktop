@@ -14,10 +14,12 @@ PanelWindow {
 
     property alias wifiItem: wifiStatus
     property alias wifiHovered: wifiStatus.hovered
+
+    property alias brightnessItem: brightnessStatus
+    property alias brightnessHovered: brightnessStatus.hovered
     
     property alias volumeItem: volumeStatus
     property alias volumeHovered: volumeStatus.hovered
-
     
     property alias mediaItem: mediaStatus
     property alias mediaHovered: mediaStatus.hovered
@@ -70,7 +72,7 @@ PanelWindow {
             id: topStack
             width: parent.width
             anchors.top: parent.top
-            spacing: 4
+            spacing: theme.gapM
 
             BatteryStatus {
                 id: batteryStatus
@@ -78,6 +80,10 @@ PanelWindow {
 
             WifiStatus {
                 id: wifiStatus
+            }
+
+            BrightnessStatus {
+                id: brightnessStatus
             }
 
             VolumeStatus {
@@ -99,7 +105,7 @@ PanelWindow {
 
             width: parent.width
             anchors.bottom: parent.bottom
-            spacing: 4
+            spacing: theme.gapM
 
             Time {
                 id: time
@@ -122,7 +128,7 @@ PanelWindow {
         triggerHovered: statusbar.wifiHovered
 
         anchor.adjustment: PopupAdjustment.None
-        anchor.rect.x: statusbar.width + 8
+        anchor.rect.x: statusbar.width + theme.gapM
         anchor.rect.y: wrapper.y + topStack.y + wifiStatus.y
     }
 
@@ -133,8 +139,19 @@ PanelWindow {
         triggerHovered: statusbar.batteryHovered
 
         anchor.adjustment: PopupAdjustment.None
-        anchor.rect.x: statusbar.width + 8
+        anchor.rect.x: statusbar.width + theme.gapM
         anchor.rect.y: wrapper.y + topStack.y + batteryStatus.y
+    }
+
+    BrightnessPopup {
+        id: brightnessPopup
+        anchorWindow: statusbar
+        buttonSize: brightnessStatus.height
+        triggerHovered: statusbar.brightnessHovered
+
+        anchor.adjustment: PopupAdjustment.None
+        anchor.rect.x: statusbar.width
+        anchor.rect.y: wrapper.y + topStack.y + brightnessStatus.y
     }
 
     AudioPopup {
@@ -144,7 +161,7 @@ PanelWindow {
         triggerHovered: statusbar.volumeHovered
 
         anchor.adjustment: PopupAdjustment.None
-        anchor.rect.x: statusbar.width + 8
+        anchor.rect.x: statusbar.width
         anchor.rect.y: wrapper.y + topStack.y + volumeStatus.y
     }
 
@@ -158,18 +175,19 @@ PanelWindow {
         triggerHovered: statusbar.timeHovered
     
         anchor.adjustment: PopupAdjustment.None
-        anchor.rect.x: statusbar.width + 8
+        anchor.rect.x: statusbar.width + theme.gapM
         anchor.rect.y: wrapper.y + bottomStack.y + time.y
     }
 
     PowerPopup {
         id: powerPopup
         anchorWindow: statusbar
+        powerButton: statusbar.powerItem
         buttonSize: powerMenu.height
         triggerHovered: statusbar.powerHovered
     
         anchor.adjustment: PopupAdjustment.None
-        anchor.rect.x: statusbar.width + 8
+        anchor.rect.x: statusbar.width
         anchor.rect.y: wrapper.y + bottomStack.y + powerMenu.y
     }
 
