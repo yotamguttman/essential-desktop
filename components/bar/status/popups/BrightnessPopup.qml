@@ -3,7 +3,7 @@ pragma ComponentBehavior: Bound
 import QtQuick
 import Quickshell
 import Quickshell.Io
-import "../core"
+import "../../../core"
 
 PopupWindow {
     id: root
@@ -11,8 +11,6 @@ PopupWindow {
     Theme {
         id: theme
     }
-
-    signal clicked
 
     property var anchorWindow
     property int buttonSize: theme.buttonSize
@@ -46,13 +44,13 @@ PopupWindow {
 
 
     anchor.window: root.anchorWindow
-    width: buttons.implicitWidth
+    width: buttons.implicitWidth + theme.borderWidth
     height: buttons.implicitHeight
     color: "transparent"
 
     Row {
         id: buttons
-        spacing: 6
+        spacing: theme.gapM
 
         SliderControl {
             id: brightnessSlider
@@ -67,8 +65,8 @@ PopupWindow {
             property bool isDark: true
 
             property string iconPath: isDark
-                ? "../core/icons/darkmode.svg"
-                : "../core/icons/lightmode.svg"
+                ? "../../../core/icons/darkmode.svg"
+                : "../../../core/icons/lightmode.svg"
 
             width: root.buttonSize
             height: root.buttonSize

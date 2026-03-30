@@ -3,7 +3,7 @@ pragma ComponentBehavior: Bound
 import QtQuick
 import Quickshell
 import Quickshell.Io
-import "../core"
+import "../../core"
 
 PopupWindow {
     id: root
@@ -11,8 +11,6 @@ PopupWindow {
     Theme {
         id: theme
     }
-
-    signal clicked
 
     property var anchorWindow
     property var powerButton
@@ -47,7 +45,7 @@ PopupWindow {
 
 
     anchor.window: root.anchorWindow
-    width: buttons.implicitWidth
+    width: buttons.implicitWidth + theme.borderWidth
     height: buttons.implicitHeight
     color: "transparent"
 
@@ -69,7 +67,7 @@ PopupWindow {
 
     Row {
         id: buttons
-        spacing: 6
+        spacing: theme.gapM
 
         Rectangle {
             id: shutdownLabelContainer
@@ -102,7 +100,7 @@ PopupWindow {
 
                 anchors.centerIn: parent
                 color: theme.fgPrimary
-                font.pixelSize: theme.textSizeM
+                font.pixelSize: theme.textSizeS
 
                 text: "Hold to shutdown"
             }
@@ -121,7 +119,7 @@ PopupWindow {
                     anchors.centerIn: parent
                     width: theme.iconSizeSmall
                     height: theme.iconSizeSmall
-                    source: "../core/icons/lock.svg"
+                    source: "../../core/icons/lock.svg"
                     fillMode: Image.PreserveAspectFit
                     smooth: true
                 }
@@ -141,7 +139,7 @@ PopupWindow {
                     anchors.centerIn: parent
                     width: theme.iconSizeSmall
                     height: theme.iconSizeSmall
-                    source: "../core/icons/logout.svg"
+                    source: "../../core/icons/logout.svg"
                     fillMode: Image.PreserveAspectFit
                     smooth: true
                 }
@@ -161,7 +159,7 @@ PopupWindow {
                     anchors.centerIn: parent
                     width: theme.iconSizeSmall
                     height: theme.iconSizeSmall
-                    source: "../core/icons/reboot.svg"
+                    source: "../../core/icons/reboot.svg"
                     fillMode: Image.PreserveAspectFit
                     smooth: true
                 }
@@ -181,7 +179,7 @@ PopupWindow {
                     anchors.centerIn: parent
                     width: theme.iconSizeSmall
                     height: theme.iconSizeSmall
-                    source: "../core/icons/suspend.svg"
+                    source: "../../core/icons/suspend.svg"
                     fillMode: Image.PreserveAspectFit
                     smooth: true
                 }

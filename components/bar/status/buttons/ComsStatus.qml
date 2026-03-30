@@ -1,6 +1,8 @@
+pragma ComponentBehavior: Bound
+
 import QtQuick
 import Quickshell.Io
-import "../core"
+import "../../../core"
 
 StatusButton {
     id: root
@@ -9,16 +11,22 @@ StatusButton {
         id: theme
     }
 
+    property bool popupActive: false
     property bool connected: false
     property int signalPercent: 0
     property string ssid: ""
 
+    topRightRadius: hovered || popupActive ? 0 : theme.radiusSmall
+    bottomRightRadius: hovered || popupActive ? 0 : theme.radiusSmall
+
     property string iconPath:
-        !connected ? "../core/icons/wifi-0.svg" :
-        signalPercent >= 75 ? "../core/icons/wifi-3.svg" :
-        signalPercent >= 50 ? "../core/icons/wifi-2.svg" :
-        signalPercent >= 25 ? "../core/icons/wifi-1.svg" :
-                            "../core/icons/wifi-0.svg"
+        !connected ? "../../../core/icons/wifi-0.svg" :
+        signalPercent >= 75 ? "../../../core/icons/wifi-3.svg" :
+        signalPercent >= 50 ? "../../../core/icons/wifi-2.svg" :
+        signalPercent >= 25 ? "../../../core/icons/wifi-1.svg" :
+                            "../../../core/icons/wifi-0.svg"
+
+    
 
     onClicked: {
         console.log("wifi / quick settings button clicked")

@@ -2,7 +2,7 @@ pragma ComponentBehavior: Bound
 
 import QtQuick
 import Quickshell.Io
-import "../core"
+import "../../../core"
 
 StatusButton {
     id: root
@@ -11,16 +11,17 @@ StatusButton {
         id: theme
     }
 
+    property bool popupActive: false
     property int brightnessPercent: 50
     property real iconSize: theme.iconSizeSmall
 
-    topRightRadius: hovered ? 0 : theme.radiusSmall
-    bottomRightRadius: hovered ? 0 : theme.radiusSmall
+    topRightRadius: hovered || popupActive ? 0 : theme.radiusSmall
+    bottomRightRadius: hovered || popupActive ? 0 : theme.radiusSmall
 
     property string iconPath:
-        brightnessPercent < 34 ? "../core/icons/brightness-low.svg" :
-        brightnessPercent < 67 ? "../core/icons/brightness-medium.svg" :
-                                "../core/icons/brightness-high.svg"
+        brightnessPercent < 34 ? "../../../core/icons/brightness-low.svg" :
+        brightnessPercent < 67 ? "../../../core/icons/brightness-medium.svg" :
+                                "../../../core/icons/brightness-high.svg"
 
     Process {
         id: brightnessProc

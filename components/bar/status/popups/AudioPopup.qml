@@ -3,7 +3,7 @@ pragma ComponentBehavior: Bound
 import QtQuick
 import Quickshell
 import Quickshell.Io
-import "../core"
+import "../../../core"
 
 PopupWindow {
     id: root
@@ -12,13 +12,12 @@ PopupWindow {
         id: theme
     }
 
-    signal clicked
-
     property var anchorWindow
     property int buttonSize: theme.buttonSize
     property int hoverBridge: 12
     property bool triggerHovered: false
     property bool hovered: popupHover.hovered || popupBridge.containsMouse
+    property bool sinkMuted: false
 
     Timer {
         id: closeDelay
@@ -46,18 +45,45 @@ PopupWindow {
 
 
     anchor.window: root.anchorWindow
-    width: buttons.implicitWidth
-    height: buttons.implicitHeight
+    width: controls.implicitWidth + theme.borderWidth
+    height: controls.implicitHeight
     color: "transparent"
 
+    Process {
+        id: sinkMuteProc
+
+        stdout: StdioCollector {
+            onStreamFinished: {
+                const out = text.trim()
+                root.sinkMuted = out === "yes"
+            }
+        }
+    }
+
+    Timer {
+        id: sinkRefreshTimer
+        interval: 500
+        running: true
+        repeat: true
+        triggeredOnStart: true
+
+        onTriggered: {
+            sinkMuteProc.exec([
+                "sh", "-c",
+                "wpctl get-volume @DEFAULT_AUDIO_SINK@ | awk '{print ($3==\"[MUTED]\"?\"yes\":\"no\")}'"
+            ])
+        }
+    }
+
     Row {
-        id: buttons
+        id: controls
         spacing: theme.gapM
     
         SliderControl {
-            id: volumeSlider
+            id: speakerVolumeSlider
 
             height: root.buttonSize
+            inactive: root.sinkMuted
             getCmd: "wpctl get-volume @DEFAULT_AUDIO_SINK@ | awk '{print $2}'"
             setCmd: "wpctl set-volume @DEFAULT_AUDIO_SINK@ $VALUE"
         }
@@ -70,8 +96,8 @@ PopupWindow {
 
                 property bool muted: false
                 property string iconPath: muted
-                    ? "../core/icons/microphone-mute.svg"
-                    : "../core/icons/microphone-on.svg"
+                    ? "../../../core/icons/microphone-mute.svg"
+                    : "../../../core/icons/microphone-on.svg"
 
                 width: root.buttonSize
                 height: root.buttonSize
@@ -122,8 +148,8 @@ PopupWindow {
 
                 content: Component {
                     Image {
-                        width: 16
-                        height: 16
+                        width: theme.iconSizeSmall
+                        height: theme.iconSizeSmall
                         source: micStatus.iconPath
                         fillMode: Image.PreserveAspectFit
                         smooth: true
@@ -136,6 +162,7 @@ PopupWindow {
 
                 height: root.buttonSize
                 width: 160
+                inactive: micStatus.muted
                 getCmd: "wpctl get-volume @DEFAULT_AUDIO_SOURCE@ | awk '{print $2}'"
                 setCmd: "wpctl set-volume @DEFAULT_AUDIO_SOURCE@ $VALUE"
             }

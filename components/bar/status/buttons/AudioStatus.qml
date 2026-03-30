@@ -1,6 +1,8 @@
+pragma ComponentBehavior: Bound
+
 import QtQuick
 import Quickshell.Io
-import "../core"
+import "../../../core"
 
 StatusButton {
     id: root
@@ -9,17 +11,18 @@ StatusButton {
         id: theme
     }
 
+    property bool popupActive: false
     property bool muted: false
     property int volumePercent: 0
 
-    topRightRadius: hovered ? 0 : theme.radiusSmall
-    bottomRightRadius: hovered ? 0 : theme.radiusSmall
+    topRightRadius: hovered || popupActive ? 0 : theme.radiusSmall
+    bottomRightRadius: hovered || popupActive ? 0 : theme.radiusSmall
 
     property string iconPath:
-        muted ? "../core/icons/volume-mute.svg" :
-        volumePercent >= 50 ? "../core/icons/speaker-high.svg" :
-        volumePercent > 0 ? "../core/icons/speaker-low.svg" :
-        "../core/icons/volume-mute.svg"
+        muted ? "../../../core/icons/volume-mute.svg" :
+        volumePercent >= 50 ? "../../../core/icons/speaker-high.svg" :
+        volumePercent > 0 ? "../../../core/icons/speaker-low.svg" :
+        "../../../core/icons/volume-mute.svg"
 
     onClicked: {
         toggleProc.exec(["wpctl", "set-mute", "@DEFAULT_AUDIO_SINK@", "toggle"])

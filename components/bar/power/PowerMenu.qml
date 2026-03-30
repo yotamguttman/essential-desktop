@@ -2,7 +2,7 @@ pragma ComponentBehavior: Bound
 
 import QtQuick
 import Quickshell.Io
-import "../core"
+import "../../core"
 
 StatusButton {
     id: root
@@ -12,6 +12,7 @@ StatusButton {
     }
 
     property bool hovered: mouse.containsMouse
+    property bool popupActive: false
     property real holdProgress: 0
     property int holdDurationMs: 2200
     property bool shutdownTriggered: false
@@ -24,8 +25,8 @@ StatusButton {
     border.color: theme.bgBorder
     opacity: theme.panelOpacity
     
-    topRightRadius: mouse.containsMouse ? 0 : theme.radiusSmall
-    bottomRightRadius: mouse.containsMouse ? 0 : theme.radiusSmall
+    topRightRadius: mouse.containsMouse || popupActive ? 0 : theme.radiusSmall
+    bottomRightRadius: mouse.containsMouse || popupActive ? 0 : theme.radiusSmall
 
     Behavior on color {
         ColorAnimation { duration: 120 }
@@ -95,7 +96,7 @@ StatusButton {
             anchors.centerIn: parent
             width: theme.iconSizeSmall
             height: theme.iconSizeSmall
-            source: "../core/icons/power.svg"
+            source: "../../core/icons/power.svg"
             fillMode: Image.PreserveAspectFit
             smooth: true
         }

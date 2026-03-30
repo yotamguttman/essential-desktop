@@ -11,7 +11,11 @@ QtObject {
 
     property color accent: "#a5a5a5"
     property color urgentColor: "#ff6666"
+    property color inactiveTrack: "#2f2f2f"
+    property color inactiveFill: "#2f2f2f"
+    property color inactiveKnob: "#2f2f2f"
 
+    property real gapS: 4
     property real gapM: 6
 
     property real borderWidth: 1
@@ -24,6 +28,10 @@ QtObject {
 
     // Popup stuff
     property real popupMargin: 10
-    property real textSizeM: 12
     property real paddingM: 24
+    property real paddingL: 42
+    
+    property real textSizeS: 12
+    property real textSizeM: 16
+    property real textSizeL: 18
 }

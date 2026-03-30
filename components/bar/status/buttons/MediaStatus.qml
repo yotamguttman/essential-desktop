@@ -1,6 +1,8 @@
+pragma ComponentBehavior: Bound
+
 import QtQuick
 import Quickshell.Io
-import "../core"
+import "../../../core"
 
 StatusButton {
     id: root
@@ -9,14 +11,19 @@ StatusButton {
         id: theme
     }
 
+    property bool popupActive: false
+
+    topRightRadius: hovered || popupActive ? 0 : theme.radiusSmall
+    bottomRightRadius: hovered || popupActive ? 0 : theme.radiusSmall
+
     // "Playing", "Paused", or ""
     property string playbackState: ""
     visible: root.playbackState !== ""
 
     property string iconPath:
         playbackState === "Playing"
-            ? "../core/icons/pause.svg"
-            : "../core/icons/play.svg"
+            ? "../../../core/icons/pause.svg"
+            : "../../../core/icons/play.svg"
 
     onClicked: {
         toggleProc.exec(["playerctl", "play-pause"])

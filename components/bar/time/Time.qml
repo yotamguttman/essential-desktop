@@ -2,7 +2,7 @@ pragma ComponentBehavior: Bound
 
 import QtQuick
 import Quickshell.Io
-import "../core"
+import "../../core"
 
 StatusButton {
     id: root
@@ -31,14 +31,14 @@ StatusButton {
                 id: hour
                 text: Qt.formatDateTime(new Date(), "HH")
                 color: theme.fgPrimary
-                font.pixelSize: 11
+                font.pixelSize: theme.fontS
             }
 
             Text {
                 id: minute
                 text: Qt.formatDateTime(new Date(), "mm")
                 color: theme.fgPrimary
-                font.pixelSize: 11
+                font.pixelSize: theme.fontS
             }
 
             Timer {

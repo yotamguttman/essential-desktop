@@ -1,9 +1,11 @@
 import QtQuick
 import Quickshell
 import "../core"
-import "../status"
-import "../power"
-import "../popups"
+import "./workspaces"
+import "./status/buttons"
+import "./time"
+import "./power"
+import "./status/popups"
 
 PanelWindow {
     id: statusbar
@@ -12,14 +14,14 @@ PanelWindow {
     property alias batteryItem: batteryStatus
     property alias batteryHovered: batteryStatus.hovered
 
-    property alias wifiItem: wifiStatus
-    property alias wifiHovered: wifiStatus.hovered
+    property alias comsItem: comsStatus
+    property alias comsHovered: comsStatus.hovered
 
     property alias brightnessItem: brightnessStatus
     property alias brightnessHovered: brightnessStatus.hovered
     
-    property alias volumeItem: volumeStatus
-    property alias volumeHovered: volumeStatus.hovered
+    property alias audioItem: audioStatus
+    property alias audioHovered: audioStatus.hovered
     
     property alias mediaItem: mediaStatus
     property alias mediaHovered: mediaStatus.hovered
@@ -78,16 +80,16 @@ PanelWindow {
                 id: batteryStatus
             }
 
-            WifiStatus {
-                id: wifiStatus
+            ComsStatus {
+                id: comsStatus
             }
 
             BrightnessStatus {
                 id: brightnessStatus
             }
 
-            VolumeStatus {
-                id: volumeStatus
+            AudioStatus {
+                id: audioStatus
             }
 
             MediaStatus {
@@ -121,17 +123,6 @@ PanelWindow {
     // Popups
         // Top Stack
 
-    ComsPopup {
-        id: comsPopup
-        anchorWindow: statusbar
-        buttonSize: wifiStatus.height
-        triggerHovered: statusbar.wifiHovered
-
-        anchor.adjustment: PopupAdjustment.None
-        anchor.rect.x: statusbar.width + theme.gapM
-        anchor.rect.y: wrapper.y + topStack.y + wifiStatus.y
-    }
-
     BatteryPopup {
         id: batteryPopup
         anchorWindow: statusbar
@@ -139,8 +130,31 @@ PanelWindow {
         triggerHovered: statusbar.batteryHovered
 
         anchor.adjustment: PopupAdjustment.None
-        anchor.rect.x: statusbar.width + theme.gapM
+        anchor.rect.x: statusbar.width
         anchor.rect.y: wrapper.y + topStack.y + batteryStatus.y
+    }
+
+    Binding {
+        target: batteryStatus
+        property: "popupActive"
+        value: batteryPopup.visible
+    }
+
+    ComsPopup {
+        id: comsPopup
+        anchorWindow: statusbar
+        buttonSize: comsStatus.height
+        triggerHovered: statusbar.comsHovered
+
+        anchor.adjustment: PopupAdjustment.None
+        anchor.rect.x: statusbar.width
+        anchor.rect.y: wrapper.y + topStack.y + comsStatus.y
+    }
+
+    Binding {
+        target: comsStatus
+        property: "popupActive"
+        value: comsPopup.visible
     }
 
     BrightnessPopup {
@@ -154,15 +168,46 @@ PanelWindow {
         anchor.rect.y: wrapper.y + topStack.y + brightnessStatus.y
     }
 
+    Binding {
+        target: brightnessStatus
+        property: "popupActive"
+        value: brightnessPopup.visible
+    }
+
     AudioPopup {
         id: audioPopup
         anchorWindow: statusbar
-        buttonSize: volumeStatus.height
-        triggerHovered: statusbar.volumeHovered
+        buttonSize: audioStatus.height
+        triggerHovered: statusbar.audioHovered
 
         anchor.adjustment: PopupAdjustment.None
         anchor.rect.x: statusbar.width
-        anchor.rect.y: wrapper.y + topStack.y + volumeStatus.y
+        anchor.rect.y: wrapper.y + topStack.y + audioStatus.y
+    }
+
+    Binding {
+        target: audioStatus
+        property: "popupActive"
+        value: audioPopup.visible
+    }
+
+
+        // Temporary stuff
+    MediaPopup {
+        id: mediaPopup
+        anchorWindow: statusbar
+        buttonSize: mediaStatus.height
+        triggerHovered: statusbar.mediaHovered
+    
+        anchor.adjustment: PopupAdjustment.None
+        anchor.rect.x: statusbar.width
+        anchor.rect.y: wrapper.y + topStack.y + mediaStatus.y
+    }
+
+    Binding {
+        target: mediaStatus
+        property: "popupActive"
+        value: mediaPopup.visible
     }
 
 
@@ -189,6 +234,12 @@ PanelWindow {
         anchor.adjustment: PopupAdjustment.None
         anchor.rect.x: statusbar.width
         anchor.rect.y: wrapper.y + bottomStack.y + powerMenu.y
+    }
+
+    Binding {
+        target: powerMenu
+        property: "popupActive"
+        value: powerPopup.visible
     }
 
 

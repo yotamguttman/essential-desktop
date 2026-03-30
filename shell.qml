@@ -1,7 +1,6 @@
 import QtQuick
 import Quickshell
 import "components/bar"
-import "components/popups"
 import Niri 0.1
 
 ShellRoot {

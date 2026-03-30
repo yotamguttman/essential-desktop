@@ -1,5 +1,7 @@
+pragma ComponentBehavior: Bound
+
 import QtQuick
-import "../core"
+import "../../core"
 
 Rectangle {
     id: root
@@ -36,6 +38,9 @@ Rectangle {
             model: root.niri ? root.niri.workspaces : null
 
             Rectangle {
+                id: workspaceDot
+                required property var model
+
                 width: 10
                 height: model.isActive ? 25 : 10
                 radius: 100
@@ -73,7 +78,7 @@ Rectangle {
                     id: hover
                     anchors.fill: parent
                     hoverEnabled: true
-                    onClicked: root.niri.focusWorkspaceById(model.id)
+                    onClicked: root.niri.focusWorkspaceById(workspaceDot.model.id)
                     cursorShape: Qt.PointingHandCursor
                 }
             }

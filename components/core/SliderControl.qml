@@ -22,6 +22,9 @@ Rectangle {
     // e.g. "wpctl set-volume @DEFAULT_AUDIO_SINK@ $VALUE"
     property string setCmd: ""
 
+    // Visual cue for hardware states such as mute. Input remains interactive.
+    property bool inactive: false
+
     // Corner radii – override per instance as needed
     topLeftRadius: 0
     bottomLeftRadius: 0
@@ -30,15 +33,12 @@ Rectangle {
 
     width: 200
     height: theme.buttonSize
+    clip: true
 
-    color: sliderMouse.containsMouse ? theme.bgHover : theme.bgPrimary
+    color: theme.bgPrimary
     opacity: theme.panelOpacity
     border.width: theme.borderWidth
     border.color: theme.bgBorder
-
-    Behavior on color {
-        ColorAnimation { duration: 120 }
-    }
 
     // ── internal helpers ────────────────────────────────────────────────────
 
@@ -47,8 +47,7 @@ Rectangle {
     }
 
     function updateFromX(xPos) {
-        const local = xPos - sliderTrack.x;
-        root.value = clamp(local / sliderTrack.width);
+        root.value = clamp(xPos / root.width);
     }
 
     function applyValue() {
@@ -92,36 +91,11 @@ Rectangle {
     // ── visuals ─────────────────────────────────────────────────────────────
 
     Rectangle {
-        id: sliderTrack
-        anchors.verticalCenter: parent.verticalCenter
         anchors.left: parent.left
-        anchors.leftMargin: 14
-        anchors.right: parent.right
-        anchors.rightMargin: 14
-        height: 4
-        radius: 2
-        color: theme.bgSecondary
-    }
-
-    Rectangle {
-        anchors.left: sliderTrack.left
-        anchors.verticalCenter: sliderTrack.verticalCenter
-        width: sliderTrack.width * root.value
-        height: sliderTrack.height
-        radius: sliderTrack.radius
-        color: theme.accent
-    }
-
-    Rectangle {
-        id: sliderKnob
-        width: 14
-        height: 14
-        radius: 7
-        color: theme.fgPrimary
-        border.width: 1
-        border.color: theme.bgBorder
-        x: sliderTrack.x + (sliderTrack.width * root.value) - (width / 2)
-        y: (parent.height - height) / 2
+        anchors.top: parent.top
+        anchors.bottom: parent.bottom
+        width: root.width * root.value
+        color: root.inactive ? theme.inactiveTrack : theme.bgSecondary
     }
 
     MouseArea {

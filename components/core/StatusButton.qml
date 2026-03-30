@@ -8,8 +8,6 @@ Rectangle {
         id: theme
     }
 
-    property var theme
-
     property bool hovered: mouse.containsMouse
     property alias content: contentLoader.sourceComponent
     signal clicked

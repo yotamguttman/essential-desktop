@@ -1,7 +1,7 @@
 import QtQuick
 import Quickshell
-import Quickshell.Io
-import "../core"
+import Quickshell.Services.UPower
+import "../../../core"
 
 PopupWindow {
     id: root
@@ -15,6 +15,8 @@ PopupWindow {
     property bool triggerHovered: false
     property int hoverBridge: 12
     property bool hovered: popupHover.hovered || popupBridge.containsMouse
+    property var device: UPower.displayDevice
+    property int batteryPercent: device ? Math.round(device.percentage * 100) : -1
 
     Timer {
         id: closeDelay
@@ -41,48 +43,27 @@ PopupWindow {
     }
 
     anchor.window: root.anchorWindow
-    width: dateLabel.width + theme.paddingM
+    width: batteryInfo.width + theme.paddingM
     height: root.buttonSize
     color: "transparent"
 
-    Process {
-        id: openCalendarProcess
-    }
-
     Rectangle {
         anchors.fill: parent
-        radius: theme.radiusSmall
-        color: popupMouse.containsMouse ? theme.bgHover : theme.bgPrimary
+        color: theme.bgPrimary
+        opacity: theme.panelOpacity
+       
         border.width: theme.borderWidth
         border.color: theme.bgBorder
-        opacity: theme.panelOpacity
-
-        Behavior on color {
-            ColorAnimation { duration: 120 }
-        }
+       
+        topRightRadius: theme.radiusSmall
+        bottomRightRadius: theme.radiusSmall
 
         Text {
-            id: dateLabel
+            id: batteryInfo
             anchors.centerIn: parent
-            text: Qt.formatDateTime(new Date(), "ddd dd MMM")
+            text: root.batteryPercent >= 0 ? root.batteryPercent + "%" : "--%"
             color: theme.fgPrimary
-            font.pixelSize: theme.textSizeM
-        }
-
-        Timer {
-            interval: 60000
-            running: true
-            repeat: true
-            triggeredOnStart: true
-            onTriggered: dateLabel.text = Qt.formatDateTime(new Date(), "ddd dd MMM")
-        }
-
-        MouseArea {
-            id: popupMouse
-            anchors.fill: parent
-            hoverEnabled: true
-            cursorShape: Qt.PointingHandCursor
-            onClicked: openCalendarProcess.exec(["gnome-calendar"])
+            font.pixelSize: theme.textSizeS
         }
     }
 
