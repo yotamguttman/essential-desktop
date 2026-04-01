@@ -42,7 +42,7 @@ PanelWindow {
         left: true
     }
 
-    implicitWidth: 45
+    implicitWidth: 37
     color: "transparent"
 
     Rectangle { // Background gradient
@@ -152,6 +152,12 @@ PanelWindow {
     }
 
     Binding {
+        target: comsPopup
+        property: "wifiEnabled"
+        value: comsStatus.wifiEnabled
+    }
+
+    Binding {
         target: comsStatus
         property: "popupActive"
         value: comsPopup.visible
@@ -244,26 +250,3 @@ PanelWindow {
 
 
 }
-
-
-/*
-    PopupWindow {
-        id: batteryTestPopup
-        anchor.window: statusbar
-        anchor.adjustment: PopupAdjustment.None
-        anchor.rect.x: statusbar.width + 8
-        anchor.rect.y: wrapper.y + topStack.y + batteryStatus.y
-        width: 140
-        height: batteryStatus.height
-        visible: true
-        color: "transparent"
-
-        Rectangle {
-            anchors.fill: parent
-            color: "#ccff0000"
-            border.width: 1
-            border.color: "#ff0000"
-            radius: 8
-        }
-    }
-*/

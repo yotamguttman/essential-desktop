@@ -15,6 +15,7 @@ PopupWindow {
     property bool triggerHovered: false
     property int hoverBridge: 12
     property bool hovered: popupHover.hovered || popupBridge.containsMouse
+    property bool expanded: triggerHovered || hovered || closeDelay.running
     property var device: UPower.displayDevice
     property int batteryPercent: device ? Math.round(device.percentage * 100) : -1
 
@@ -24,7 +25,7 @@ PopupWindow {
         repeat: false
     }
 
-    visible: triggerHovered || hovered || closeDelay.running
+    visible: expanded || revealClip.width > 0
 
     onHoveredChanged: {
         if (triggerHovered || hovered) {
@@ -43,27 +44,57 @@ PopupWindow {
     }
 
     anchor.window: root.anchorWindow
-    width: batteryInfo.width + theme.paddingM
-    height: root.buttonSize
+    implicitWidth: batteryBody.implicitWidth
+    implicitHeight: root.buttonSize
     color: "transparent"
 
-    Rectangle {
-        anchors.fill: parent
-        color: theme.bgPrimary
-        opacity: theme.panelOpacity
-       
-        border.width: theme.borderWidth
-        border.color: theme.bgBorder
-       
-        topRightRadius: theme.radiusSmall
-        bottomRightRadius: theme.radiusSmall
+    Item {
+        id: revealClip
+        anchors.left: parent.left
+        anchors.top: parent.top
+        anchors.bottom: parent.bottom
+        width: root.expanded ? batteryBody.implicitWidth : 0
+        clip: true
 
-        Text {
-            id: batteryInfo
-            anchors.centerIn: parent
-            text: root.batteryPercent >= 0 ? root.batteryPercent + "%" : "--%"
-            color: theme.fgPrimary
-            font.pixelSize: theme.textSizeS
+        Behavior on width {
+            NumberAnimation {
+                duration: theme.revealDuration
+                easing.type: theme.revealEasing
+            }
+        }
+
+        Rectangle {
+            id: batteryBody
+            anchors.fill: parent
+            implicitWidth: batteryInfo.implicitWidth + theme.paddingM
+            color: theme.bgPrimary
+            opacity: theme.panelOpacity
+            gradient: theme.bgBorderGradient
+            border.width: theme.borderWidth
+            border.color: theme.bgBorder
+
+            topRightRadius: theme.radiusSmall
+            bottomRightRadius: theme.radiusSmall
+
+            Rectangle {
+                z: -1
+                anchors.fill: parent
+                anchors.margins: theme.borderWidth
+                color: batteryBody.color
+                radius: Math.max(0, batteryBody.radius - theme.borderWidth)
+                topLeftRadius: Math.max(0, batteryBody.topLeftRadius - theme.borderWidth)
+                topRightRadius: Math.max(0, batteryBody.topRightRadius - theme.borderWidth)
+                bottomLeftRadius: Math.max(0, batteryBody.bottomLeftRadius - theme.borderWidth)
+                bottomRightRadius: Math.max(0, batteryBody.bottomRightRadius - theme.borderWidth)
+            }
+
+            Text {
+                id: batteryInfo
+                anchors.centerIn: parent
+                text: root.batteryPercent >= 0 ? root.batteryPercent + "%" : "--%"
+                color: theme.fgPrimary
+                font.pixelSize: theme.textSizeS
+            }
         }
     }
 

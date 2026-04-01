@@ -12,6 +12,7 @@ StatusButton {
     }
 
     property bool popupActive: false
+    property bool wifiEnabled: false
     property bool connected: false
     property int signalPercent: 0
     property string ssid: ""
@@ -29,7 +30,8 @@ StatusButton {
     
 
     onClicked: {
-        console.log("wifi / quick settings button clicked")
+        wifiToggleProc.exec(["nmcli", "radio", "wifi", root.wifiEnabled ? "off" : "on"])
+        wifiRefreshTimer.restart()
     }
 
     Process {
@@ -38,23 +40,30 @@ StatusButton {
         stdout: StdioCollector {
             onStreamFinished: {
                 const out = text.trim()
+                const parts = out.split("|")
 
-                if (!out || out.startsWith("off|")) {
+                if (!out || parts[0] !== "enabled") {
+                    root.wifiEnabled = false
                     root.connected = false
                     root.signalPercent = 0
                     root.ssid = ""
                     return
                 }
 
-                const parts = out.split("|")
-                root.signalPercent = parseInt(parts[0], 10) || 0
-                root.ssid = parts.length > 1 ? parts.slice(1).join("|") : ""
-                root.connected = true
+                root.wifiEnabled = true
+                root.signalPercent = parseInt(parts[1], 10) || 0
+                root.ssid = parts.length > 2 ? parts.slice(2).join("|") : ""
+                root.connected = root.ssid.length > 0
             }
         }
     }
 
+    Process {
+        id: wifiToggleProc
+    }
+
     Timer {
+        id: wifiRefreshTimer
         interval: 5000
         running: true
         repeat: true
@@ -63,7 +72,7 @@ StatusButton {
         onTriggered: {
             wifiProc.exec([
                 "sh", "-c",
-                "nmcli -t -f IN-USE,SIGNAL,SSID dev wifi list | awk -F: '$1==\"*\"{print $2\"|\"$3; found=1} END{if(!found) print \"off|\"}'"
+                "if [ \"$(nmcli -t -f WIFI general 2>/dev/null | head -1)\" != \"enabled\" ]; then echo \"disabled|0|\"; else nmcli -t -f IN-USE,SIGNAL,SSID dev wifi list 2>/dev/null | awk -F: '$1==\"*\"{print \"enabled|\"$2\"|\"$3; found=1} END{if(!found) print \"enabled|0|\"}'; fi"
             ])
         }
     }
@@ -80,6 +89,7 @@ StatusButton {
                 source: root.iconPath
                 fillMode: Image.PreserveAspectFit
                 smooth: true
+                opacity: root.wifiEnabled ? 1.0 : 0.4
             }
         }
     }

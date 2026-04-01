@@ -18,6 +18,7 @@ PopupWindow {
     property int hoverBridge: 12
     property bool triggerHovered: false
     property bool hovered: popupHover.hovered || popupBridge.containsMouse
+    property bool expanded: triggerHovered || hovered || closeDelay.running
 
     Timer {
         id: closeDelay
@@ -25,7 +26,7 @@ PopupWindow {
         repeat: false
     }
 
-    visible: triggerHovered || hovered || closeDelay.running
+    visible: expanded || revealClip.width > 0
 
     onHoveredChanged: {
         if (triggerHovered || hovered) {
@@ -43,10 +44,9 @@ PopupWindow {
         }
     }
 
-
     anchor.window: root.anchorWindow
-    width: buttons.implicitWidth + theme.borderWidth
-    height: buttons.implicitHeight
+    implicitWidth: buttons.implicitWidth
+    implicitHeight: buttons.implicitHeight
     color: "transparent"
 
     Process {
@@ -65,74 +65,103 @@ PopupWindow {
         id: suspendProc
     }
 
-    Row {
-        id: buttons
-        spacing: theme.gapM
+    Item {
+        id: revealClip
+        anchors.left: parent.left
+        anchors.top: parent.top
+        anchors.bottom: parent.bottom
+        width: root.expanded ? buttons.implicitWidth : 0
+        clip: true
 
-        Rectangle {
-            id: shutdownLabelContainer
+        Behavior on width {
+            NumberAnimation {
+                duration: theme.revealDuration * 2
+                easing.type: theme.revealEasing
+            }
+        }
 
-            width: shutdownLabel.width + theme.paddingM
-            height: root.buttonSize
-
-            color: theme.bgPrimary
-            border.width: theme.borderWidth
-            border.color: theme.bgBorder
-            opacity: theme.panelOpacity
-            
-            topLeftRadius: 0
-            bottomLeftRadius: 0
-            topRightRadius: theme.radiusSmall
-            bottomRightRadius: theme.radiusSmall
-            clip: true
+        Row {
+            id: buttons
+            spacing: theme.gapM
 
             Rectangle {
-                anchors.left: parent.left
-                anchors.top: parent.top
-                anchors.bottom: parent.bottom
-                width: parent.width * (root.powerButton ? root.powerButton.holdProgress : 0)
-                color: theme.urgentColor
-                opacity: 0.35
-            }
+                id: shutdownLabelContainer
 
-            Text {
-                id: shutdownLabel
+                width: shutdownLabel.implicitWidth + theme.paddingM
+                height: root.buttonSize
 
-                anchors.centerIn: parent
-                color: theme.fgPrimary
-                font.pixelSize: theme.textSizeS
+                color: theme.bgPrimary
+                gradient: theme.bgBorderGradient
+                border.width: theme.borderWidth
+                border.color: theme.bgBorder
+                opacity: theme.panelOpacity
+            
+                topLeftRadius: 0
+                bottomLeftRadius: 0
+                topRightRadius: theme.radiusSmall
+                bottomRightRadius: theme.radiusSmall
+                clip: true
 
-                text: "Hold to shutdown"
-            }
-        }
+                Rectangle {
+                    z: -1
+                    anchors.fill: parent
+                    anchors.margins: theme.borderWidth
+                    color: shutdownLabelContainer.color
+                    radius: Math.max(0, shutdownLabelContainer.radius - theme.borderWidth)
+                    topLeftRadius: Math.max(0, shutdownLabelContainer.topLeftRadius - theme.borderWidth)
+                    topRightRadius: Math.max(0, shutdownLabelContainer.topRightRadius - theme.borderWidth)
+                    bottomLeftRadius: Math.max(0, shutdownLabelContainer.bottomLeftRadius - theme.borderWidth)
+                    bottomRightRadius: Math.max(0, shutdownLabelContainer.bottomRightRadius - theme.borderWidth)
+                }
 
-        StatusButton {
-            id: lock
+                Rectangle {
+                    anchors.left: parent.left
+                    anchors.top: parent.top
+                    anchors.bottom: parent.bottom
+                    anchors.margins: theme.borderWidth
+                    width: (parent.width - (theme.borderWidth * 2)) * (root.powerButton ? root.powerButton.holdProgress : 0)
+                    color: theme.urgentColor
+                    opacity: 0.35
+                }
 
-            width: root.buttonSize
-            height: root.buttonSize
+                Text {
+                    id: shutdownLabel
 
-            onClicked: lockProc.exec(["loginctl", "lock-session"])
-
-            content: Component {
-                Image {
                     anchors.centerIn: parent
-                    width: theme.iconSizeSmall
-                    height: theme.iconSizeSmall
-                    source: "../../core/icons/lock.svg"
-                    fillMode: Image.PreserveAspectFit
-                    smooth: true
+                    color: theme.fgPrimary
+                    font.pixelSize: theme.textSizeS
+
+                    text: "Hold to shutdown"
                 }
             }
-        }
 
-        StatusButton {
-            id: logout
+            StatusButton {
+                id: lock
 
-            width: root.buttonSize
-            height: root.buttonSize
+                width: root.buttonSize
+                height: root.buttonSize
 
-            onClicked: logoutProc.exec(["loginctl", "logout"])
+                onClicked: lockProc.exec(["loginctl", "lock-session"])
+
+                content: Component {
+                    Image {
+                        anchors.centerIn: parent
+                        width: theme.iconSizeSmall
+                        height: theme.iconSizeSmall
+                        source: "../../core/icons/lock.svg"
+                        fillMode: Image.PreserveAspectFit
+                        smooth: true
+                    }
+                }
+            }
+
+            StatusButton {
+                id: logout
+
+                width: root.buttonSize
+                height: root.buttonSize
+
+                onClicked: logoutProc.exec(["loginctl", "logout"])
 
             content: Component {
                 Image {
@@ -146,13 +175,13 @@ PopupWindow {
             }
         }
 
-        StatusButton {
-            id: reboot
+            StatusButton {
+                id: reboot
 
-            width: root.buttonSize
-            height: root.buttonSize
+                width: root.buttonSize
+                height: root.buttonSize
 
-            onClicked: rebootProc.exec(["systemctl", "reboot"])
+                onClicked: rebootProc.exec(["systemctl", "reboot"])
 
             content: Component {
                 Image {
@@ -166,13 +195,13 @@ PopupWindow {
             }
         }
 
-        StatusButton {
-            id: suspend
+            StatusButton {
+                id: suspend
 
-            width: root.buttonSize
-            height: root.buttonSize
+                width: root.buttonSize
+                height: root.buttonSize
 
-            onClicked: suspendProc.exec(["systemctl", "suspend"])
+                onClicked: suspendProc.exec(["systemctl", "suspend"])
 
             content: Component {
                 Image {
@@ -183,6 +212,7 @@ PopupWindow {
                     fillMode: Image.PreserveAspectFit
                     smooth: true
                 }
+            }
             }
         }
     }

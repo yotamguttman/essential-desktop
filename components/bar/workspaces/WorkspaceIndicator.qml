@@ -16,8 +16,20 @@ Rectangle {
     radius: 12
     color: theme.bgPrimary
     opacity: theme.panelOpacity
-    border.width: theme.borderWidth
-    border.color: theme.bgBorder
+    gradient: theme.bgBorderGradient
+    border.width: 0
+
+    Rectangle {
+        z: -1
+        anchors.fill: parent
+        anchors.margins: theme.borderWidth
+        color: root.color
+        radius: Math.max(0, root.radius - theme.borderWidth)
+        topLeftRadius: Math.max(0, root.topLeftRadius - theme.borderWidth)
+        topRightRadius: Math.max(0, root.topRightRadius - theme.borderWidth)
+        bottomLeftRadius: Math.max(0, root.bottomLeftRadius - theme.borderWidth)
+        bottomRightRadius: Math.max(0, root.bottomRightRadius - theme.borderWidth)
+    }
 
     width: 24
     height: content.height + 16

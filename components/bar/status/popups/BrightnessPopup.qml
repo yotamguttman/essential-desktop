@@ -17,6 +17,8 @@ PopupWindow {
     property int hoverBridge: 12
     property bool triggerHovered: false
     property bool hovered: popupHover.hovered || popupBridge.containsMouse
+    property bool expanded: triggerHovered || hovered || closeDelay.running
+    property real revealTargetWidth: buttons.implicitWidth
 
     Timer {
         id: closeDelay
@@ -24,7 +26,7 @@ PopupWindow {
         repeat: false
     }
 
-    visible: triggerHovered || hovered || closeDelay.running
+    visible: expanded || revealClip.width > 0
 
     onHoveredChanged: {
         if (triggerHovered || hovered) {
@@ -44,76 +46,92 @@ PopupWindow {
 
 
     anchor.window: root.anchorWindow
-    width: buttons.implicitWidth + theme.borderWidth
-    height: buttons.implicitHeight
+    implicitWidth: buttons.implicitWidth + theme.borderWidth
+    implicitHeight: buttons.implicitHeight
     color: "transparent"
 
-    Row {
-        id: buttons
-        spacing: theme.gapM
+    Item {
+        id: revealClip
+        anchors.left: parent.left
+        anchors.top: parent.top
+        anchors.bottom: parent.bottom
+        width: root.expanded ? root.revealTargetWidth : 0
+        clip: true
 
-        SliderControl {
-            id: brightnessSlider
-            height: root.buttonSize
-            getCmd: "if command -v brightnessctl >/dev/null 2>&1; then brightnessctl -m | awk -F, '{gsub(/%/, \"\", $4); print int($4)/100}'; else dev=$(ls -1 /sys/class/backlight 2>/dev/null | head -n1); if [ -n \"$dev\" ]; then b=$(cat /sys/class/backlight/$dev/brightness 2>/dev/null); m=$(cat /sys/class/backlight/$dev/max_brightness 2>/dev/null); if [ -n \"$b\" ] && [ -n \"$m\" ] && [ \"$m\" -gt 0 ]; then awk -v b=\"$b\" -v m=\"$m\" 'BEGIN{print b/m}'; fi; fi; fi"
-            setCmd: "pct=$(awk 'BEGIN{print int($VALUE*100)}'); if command -v brightnessctl >/dev/null 2>&1; then brightnessctl set ${pct}% >/dev/null; else dev=$(ls -1 /sys/class/backlight 2>/dev/null | head -n1); [ -n \"$dev\" ] && max=$(cat /sys/class/backlight/$dev/max_brightness 2>/dev/null) && echo $(awk -v p=$pct -v m=$max 'BEGIN{print int(p/100*m)}') > /sys/class/backlight/$dev/brightness; fi"
+        Behavior on width {
+            NumberAnimation {
+                duration: theme.revealDuration * 1.5
+                easing.type: theme.revealEasing
+            }
         }
 
-        StatusButton {
-            id: themeToggle
+        Row {
+            id: buttons
+            spacing: theme.gapM
 
-            property bool isDark: true
-
-            property string iconPath: isDark
-                ? "../../../core/icons/darkmode.svg"
-                : "../../../core/icons/lightmode.svg"
-
-            width: root.buttonSize
-            height: root.buttonSize
-
-            onClicked: {
-                themeToggle.isDark = !themeToggle.isDark
-                toggleThemeProc.exec(["sh", "/home/yoti/.bin/toggle-theme.sh"])
-                verifyTimer.restart()
+            SliderControl {
+                id: brightnessSlider
+                height: root.buttonSize
+                getCmd: "if command -v brightnessctl >/dev/null 2>&1; then brightnessctl -m | awk -F, '{gsub(/%/, \"\", $4); print int($4)/100}'; else dev=$(ls -1 /sys/class/backlight 2>/dev/null | head -n1); if [ -n \"$dev\" ]; then b=$(cat /sys/class/backlight/$dev/brightness 2>/dev/null); m=$(cat /sys/class/backlight/$dev/max_brightness 2>/dev/null); if [ -n \"$b\" ] && [ -n \"$m\" ] && [ \"$m\" -gt 0 ]; then awk -v b=\"$b\" -v m=\"$m\" 'BEGIN{print b/m}'; fi; fi; fi"
+                setCmd: "pct=$(awk 'BEGIN{print int($VALUE*100)}'); if command -v brightnessctl >/dev/null 2>&1; then brightnessctl set ${pct}% >/dev/null; else dev=$(ls -1 /sys/class/backlight 2>/dev/null | head -n1); [ -n \"$dev\" ] && max=$(cat /sys/class/backlight/$dev/max_brightness 2>/dev/null) && echo $(awk -v p=$pct -v m=$max 'BEGIN{print int(p/100*m)}') > /sys/class/backlight/$dev/brightness; fi"
             }
 
-            Process {
-                id: readThemeProc
+            StatusButton {
+                id: themeToggle
 
-                stdout: StdioCollector {
-                    onStreamFinished: {
-                        const out = text.trim().replace(/'/g, "")
-                        themeToggle.isDark = (out === "prefer-dark")
+                property bool isDark: true
+
+                property string iconPath: isDark
+                    ? "../../../core/icons/darkmode.svg"
+                    : "../../../core/icons/lightmode.svg"
+
+                width: root.buttonSize
+                height: root.buttonSize
+
+                onClicked: {
+                    themeToggle.isDark = !themeToggle.isDark
+                    toggleThemeProc.exec(["sh", "/home/yoti/.bin/toggle-theme.sh"])
+                    verifyTimer.restart()
+                }
+
+                Process {
+                    id: readThemeProc
+
+                    stdout: StdioCollector {
+                        onStreamFinished: {
+                            const out = text.trim().replace(/'/g, "")
+                            themeToggle.isDark = (out === "prefer-dark")
+                        }
                     }
                 }
-            }
 
-            Process {
-                id: toggleThemeProc
-            }
+                Process {
+                    id: toggleThemeProc
+                }
 
-            Timer {
-                id: verifyTimer
-                interval: 400
-                repeat: false
-                onTriggered: readThemeProc.exec(["gsettings", "get", "org.gnome.desktop.interface", "color-scheme"])
-            }
+                Timer {
+                    id: verifyTimer
+                    interval: 400
+                    repeat: false
+                    onTriggered: readThemeProc.exec(["gsettings", "get", "org.gnome.desktop.interface", "color-scheme"])
+                }
 
-            Timer {
-                interval: 0
-                running: true
-                repeat: false
-                onTriggered: readThemeProc.exec(["gsettings", "get", "org.gnome.desktop.interface", "color-scheme"])
-            }
+                Timer {
+                    interval: 0
+                    running: true
+                    repeat: false
+                    onTriggered: readThemeProc.exec(["gsettings", "get", "org.gnome.desktop.interface", "color-scheme"])
+                }
 
-            content: Component {
-                Image {
-                    anchors.centerIn: parent
-                    width: theme.iconSizeSmall
-                    height: theme.iconSizeSmall
-                    source: themeToggle.iconPath
-                    fillMode: Image.PreserveAspectFit
-                    smooth: true
+                content: Component {
+                    Image {
+                        anchors.centerIn: parent
+                        width: theme.iconSizeSmall
+                        height: theme.iconSizeSmall
+                        source: themeToggle.iconPath
+                        fillMode: Image.PreserveAspectFit
+                        smooth: true
+                    }
                 }
             }
         }

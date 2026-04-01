@@ -25,20 +25,38 @@ Rectangle {
     // Visual cue for hardware states such as mute. Input remains interactive.
     property bool inactive: false
 
+    // Inset for the inner fill so the slider looks nested inside its container.
+    property real fillInset: 4
+
     // Corner radii – override per instance as needed
-    topLeftRadius: 0
-    bottomLeftRadius: 0
-    topRightRadius: theme.radiusSmall
-    bottomRightRadius: theme.radiusSmall
 
     width: 200
     height: theme.buttonSize
     clip: true
 
-    color: theme.bgPrimary
-    opacity: theme.panelOpacity
+    topLeftRadius: 0
+    bottomLeftRadius: 0
+    topRightRadius: theme.radiusSmall
+    bottomRightRadius: theme.radiusSmall
     border.width: theme.borderWidth
     border.color: theme.bgBorder
+
+    color: theme.bgPrimary
+    opacity: theme.panelOpacity
+    gradient: theme.bgBorderGradient
+
+    Rectangle {
+        id: background
+        z: -1
+        anchors.fill: parent
+        anchors.margins: theme.borderWidth
+        color: root.color
+        radius: Math.max(0, root.radius - theme.borderWidth)
+        topLeftRadius: Math.max(0, root.topLeftRadius - theme.borderWidth)
+        topRightRadius: Math.max(0, root.topRightRadius - theme.borderWidth)
+        bottomLeftRadius: Math.max(0, root.bottomLeftRadius - theme.borderWidth)
+        bottomRightRadius: Math.max(0, root.bottomRightRadius - theme.borderWidth)
+    }
 
     // ── internal helpers ────────────────────────────────────────────────────
 
@@ -91,11 +109,21 @@ Rectangle {
     // ── visuals ─────────────────────────────────────────────────────────────
 
     Rectangle {
-        anchors.left: parent.left
-        anchors.top: parent.top
-        anchors.bottom: parent.bottom
-        width: root.width * root.value
+        anchors.left: background.left
+        anchors.top: background.top
+        anchors.bottom: background.bottom
+        anchors.leftMargin: root.fillInset
+        anchors.topMargin: root.fillInset
+        anchors.bottomMargin: root.fillInset
+        width: Math.max(0, (background.width - (root.fillInset * 2)) * root.value)
         color: root.inactive ? theme.inactiveTrack : theme.bgSecondary
+
+        Behavior on color {
+            ColorAnimation { duration: 200 }
+        }
+
+        topRightRadius: Math.max(0, background.topRightRadius - root.fillInset)
+        bottomRightRadius: Math.max(0, background.bottomRightRadius - root.fillInset)
     }
 
     MouseArea {

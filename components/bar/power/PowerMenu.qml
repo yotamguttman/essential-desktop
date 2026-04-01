@@ -21,8 +21,6 @@ StatusButton {
     height: parent.width
 
     color: mouse.containsMouse ? theme.bgHover : theme.bgPrimary
-    border.width: theme.borderWidth
-    border.color: theme.bgBorder
     opacity: theme.panelOpacity
     
     topRightRadius: mouse.containsMouse || popupActive ? 0 : theme.radiusSmall

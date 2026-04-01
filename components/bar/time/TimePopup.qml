@@ -15,6 +15,7 @@ PopupWindow {
     property bool triggerHovered: false
     property int hoverBridge: 12
     property bool hovered: popupHover.hovered || popupBridge.containsMouse
+    property bool expanded: triggerHovered || hovered || closeDelay.running
 
     Timer {
         id: closeDelay
@@ -22,7 +23,7 @@ PopupWindow {
         repeat: false
     }
 
-    visible: triggerHovered || hovered || closeDelay.running
+    visible: expanded || revealClip.width > 0
 
     onHoveredChanged: {
         if (triggerHovered || hovered) {
@@ -41,64 +42,96 @@ PopupWindow {
     }
 
     anchor.window: root.anchorWindow
-    width: dateLabel.width + theme.paddingL
-    height: root.buttonSize
+    implicitWidth: timeBody.implicitWidth
+    implicitHeight: root.buttonSize
     color: "transparent"
 
     Process {
         id: openCalendarProcess
     }
 
-    Rectangle {
-        anchors.fill: parent
-        radius: theme.radiusSmall
-        color: popupMouse.containsMouse ? theme.bgHover : theme.bgPrimary
-        border.width: theme.borderWidth
-        border.color: theme.bgBorder
-        opacity: theme.panelOpacity
+    Item {
+        id: revealClip
+        anchors.left: parent.left
+        anchors.top: parent.top
+        anchors.bottom: parent.bottom
+        width: root.expanded ? timeBody.implicitWidth : 0
+        clip: true
 
-        Behavior on color {
-            ColorAnimation { duration: 120 }
-        }
-
-        Column {
-            anchors.centerIn: parent
-            spacing: theme.gapS
-            
-            Text {
-                id: dateLabel
-                anchors.horizontalCenter: parent.horizontalCenter
-                text: Qt.formatDateTime(new Date(), "dddd dd")
-                color: theme.fgPrimary
-                font.pixelSize: theme.textSizeL
-                horizontalAlignment: Text.AlignHCenter
-            }
-
-            Text {
-                id: dateLabelone
-                anchors.horizontalCenter: parent.horizontalCenter
-                text: Qt.formatDateTime(new Date(), "MMMM yyyy")
-                color: theme.fgPrimary
-                font.pixelSize: theme.textSizeS
-                horizontalAlignment: Text.AlignHCenter
+        Behavior on width {
+            NumberAnimation {
+                duration: theme.revealDuration * 1.5
+                easing.type: theme.revealEasing
             }
         }
 
-
-        Timer {
-            interval: 60000
-            running: true
-            repeat: true
-            triggeredOnStart: true
-            onTriggered: dateLabel.text = Qt.formatDateTime(new Date(), "dddd dd")
-        }
-
-        MouseArea {
-            id: popupMouse
+        Rectangle {
+            id: timeBody
             anchors.fill: parent
-            hoverEnabled: true
-            cursorShape: Qt.PointingHandCursor
-            onClicked: openCalendarProcess.exec(["gnome-calendar"])
+            implicitWidth: dateColumn.implicitWidth + theme.paddingL
+            radius: theme.radiusSmall
+            color: popupMouse.containsMouse ? theme.bgHover : theme.bgPrimary
+            gradient: theme.bgBorderGradient
+            border.width: theme.borderWidth
+            border.color: theme.bgBorder
+            opacity: theme.panelOpacity
+
+            Rectangle {
+                z: -1
+                anchors.fill: parent
+                anchors.margins: theme.borderWidth
+                color: timeBody.color
+                radius: Math.max(0, timeBody.radius - theme.borderWidth)
+                topLeftRadius: Math.max(0, timeBody.topLeftRadius - theme.borderWidth)
+                topRightRadius: Math.max(0, timeBody.topRightRadius - theme.borderWidth)
+                bottomLeftRadius: Math.max(0, timeBody.bottomLeftRadius - theme.borderWidth)
+                bottomRightRadius: Math.max(0, timeBody.bottomRightRadius - theme.borderWidth)
+            }
+
+            Behavior on color {
+                ColorAnimation { duration: 120 }
+            }
+
+            Column {
+                id: dateColumn
+                anchors.centerIn: parent
+                spacing: theme.gapS
+
+                Text {
+                    id: dateLabel
+                    anchors.horizontalCenter: parent.horizontalCenter
+                    text: Qt.formatDateTime(new Date(), "dddd dd")
+                    color: theme.fgPrimary
+                    font.pixelSize: theme.textSizeL
+                    horizontalAlignment: Text.AlignHCenter
+                }
+
+                Text {
+                    id: dateLabelone
+                    anchors.horizontalCenter: parent.horizontalCenter
+                    text: Qt.formatDateTime(new Date(), "MMMM yyyy")
+                    color: theme.fgPrimary
+                    font.pixelSize: theme.textSizeS
+                    horizontalAlignment: Text.AlignHCenter
+                }
+            }
+
+
+            Timer {
+                interval: 60000
+                running: true
+                repeat: true
+                triggeredOnStart: true
+                onTriggered: dateLabel.text = Qt.formatDateTime(new Date(), "dddd dd")
+            }
+
+            MouseArea {
+                id: popupMouse
+                anchors.fill: parent
+                hoverEnabled: true
+                cursorShape: Qt.PointingHandCursor
+                onClicked: openCalendarProcess.exec(["gnome-calendar"])
+            }
         }
     }
 

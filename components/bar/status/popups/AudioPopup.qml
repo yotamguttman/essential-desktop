@@ -17,6 +17,7 @@ PopupWindow {
     property int hoverBridge: 12
     property bool triggerHovered: false
     property bool hovered: popupHover.hovered || popupBridge.containsMouse
+    property bool expanded: triggerHovered || hovered || closeDelay.running
     property bool sinkMuted: false
 
     Timer {
@@ -25,7 +26,7 @@ PopupWindow {
         repeat: false
     }
 
-    visible: triggerHovered || hovered || closeDelay.running
+    visible: expanded || revealClip.width > 0
 
     onHoveredChanged: {
         if (triggerHovered || hovered) {
@@ -45,8 +46,8 @@ PopupWindow {
 
 
     anchor.window: root.anchorWindow
-    width: controls.implicitWidth + theme.borderWidth
-    height: controls.implicitHeight
+    implicitWidth: controls.implicitWidth + theme.borderWidth
+    implicitHeight: controls.implicitHeight
     color: "transparent"
 
     Process {
@@ -75,100 +76,114 @@ PopupWindow {
         }
     }
 
-    Row {
-        id: controls
-        spacing: theme.gapM
-    
-        SliderControl {
-            id: speakerVolumeSlider
+    Item {
+        id: revealClip
+        anchors.left: parent.left
+        anchors.top: parent.top
+        anchors.bottom: parent.bottom
+        width: root.expanded ? root.implicitWidth : 0
+        clip: true
 
-            height: root.buttonSize
-            inactive: root.sinkMuted
-            getCmd: "wpctl get-volume @DEFAULT_AUDIO_SINK@ | awk '{print $2}'"
-            setCmd: "wpctl set-volume @DEFAULT_AUDIO_SINK@ $VALUE"
+        Behavior on width {
+            NumberAnimation {
+                duration: theme.revealDuration * 2
+                easing.type: theme.revealEasing
+            }
         }
 
         Row {
-            id: micControls
+            id: controls
+            spacing: theme.gapM
 
-            StatusButton {
-                id: micStatus
+            SliderControl {
+                id: speakerVolumeSlider
 
-                property bool muted: false
-                property string iconPath: muted
-                    ? "../../../core/icons/microphone-mute.svg"
-                    : "../../../core/icons/microphone-on.svg"
-
-                width: root.buttonSize
                 height: root.buttonSize
+                inactive: root.sinkMuted
+                getCmd: "wpctl get-volume @DEFAULT_AUDIO_SINK@ | awk '{print $2}'"
+                setCmd: "wpctl set-volume @DEFAULT_AUDIO_SINK@ $VALUE"
+            }
 
-                topRightRadius: 0
-                bottomRightRadius: 0
+            Row {
+                id: micControls
 
-                onClicked: {
-                    toggleProc.exec(["wpctl", "set-mute", "@DEFAULT_AUDIO_SOURCE@", "toggle"])
-                    refreshTimer.restart()
-                }
+                StatusButton {
+                    id: micStatus
 
-                Process {
-                    id: micProc
+                    property bool muted: false
+                    property string iconPath: muted
+                        ? "../../../core/icons/microphone-mute.svg"
+                        : "../../../core/icons/microphone-on.svg"
 
-                    stdout: StdioCollector {
-                        onStreamFinished: {
-                            const out = text.trim()
+                    width: root.buttonSize
+                    height: root.buttonSize
 
-                            if (!out) {
-                                micStatus.muted = false
-                                return
+                    topRightRadius: 0
+                    bottomRightRadius: 0
+
+                    onClicked: {
+                        toggleProc.exec(["wpctl", "set-mute", "@DEFAULT_AUDIO_SOURCE@", "toggle"])
+                        refreshTimer.restart()
+                    }
+
+                    Process {
+                        id: micProc
+
+                        stdout: StdioCollector {
+                            onStreamFinished: {
+                                const out = text.trim()
+
+                                if (!out) {
+                                    micStatus.muted = false
+                                    return
+                                }
+
+                                micStatus.muted = out === "yes"
                             }
+                        }
+                    }
 
-                            micStatus.muted = out === "yes"
+                    Process {
+                        id: toggleProc
+                    }
+
+                    Timer {
+                        id: refreshTimer
+                        interval: 500
+                        running: true
+                        repeat: true
+                        triggeredOnStart: true
+
+                        onTriggered: {
+                            micProc.exec([
+                                "sh", "-c",
+                                "wpctl get-volume @DEFAULT_AUDIO_SOURCE@ | awk '{print ($3==\"[MUTED]\"?\"yes\":\"no\")}'"
+                            ])
+                        }
+                    }
+
+                    content: Component {
+                        Image {
+                            width: theme.iconSizeSmall
+                            height: theme.iconSizeSmall
+                            source: micStatus.iconPath
+                            fillMode: Image.PreserveAspectFit
+                            smooth: true
                         }
                     }
                 }
 
-                Process {
-                    id: toggleProc
-                }
+                SliderControl {
+                    id: micVolumeSlider
 
-                Timer {
-                    id: refreshTimer
-                    interval: 500
-                    running: true
-                    repeat: true
-                    triggeredOnStart: true
-
-                    onTriggered: {
-                        micProc.exec([
-                            "sh", "-c",
-                            "wpctl get-volume @DEFAULT_AUDIO_SOURCE@ | awk '{print ($3==\"[MUTED]\"?\"yes\":\"no\")}'"
-                        ])
-                    }
-                }
-
-                content: Component {
-                    Image {
-                        width: theme.iconSizeSmall
-                        height: theme.iconSizeSmall
-                        source: micStatus.iconPath
-                        fillMode: Image.PreserveAspectFit
-                        smooth: true
-                    }
+                    height: root.buttonSize
+                    width: 160
+                    inactive: micStatus.muted
+                    getCmd: "wpctl get-volume @DEFAULT_AUDIO_SOURCE@ | awk '{print $2}'"
+                    setCmd: "wpctl set-volume @DEFAULT_AUDIO_SOURCE@ $VALUE"
                 }
             }
-
-            SliderControl {
-                id: micVolumeSlider
-
-                height: root.buttonSize
-                width: 160
-                inactive: micStatus.muted
-                getCmd: "wpctl get-volume @DEFAULT_AUDIO_SOURCE@ | awk '{print $2}'"
-                setCmd: "wpctl set-volume @DEFAULT_AUDIO_SOURCE@ $VALUE"
-            }
-        
         }
-        
     }
 
     HoverHandler {

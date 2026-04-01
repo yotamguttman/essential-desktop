@@ -25,6 +25,15 @@ Rectangle {
         ColorAnimation { duration: 120 }
     }
 
+    // Animate right-side corner transitions used by status buttons with popups.
+    Behavior on topRightRadius {
+        NumberAnimation { duration: 120; easing.type: theme.revealEasing }
+    }
+    Behavior on bottomRightRadius {
+        NumberAnimation { duration: 120; easing.type: theme.revealEasing }
+    }
+
+
     MouseArea {
         id: mouse
         anchors.fill: parent
@@ -37,6 +46,4 @@ Rectangle {
         id: contentLoader
         anchors.centerIn: parent
     }
-
-    
 }

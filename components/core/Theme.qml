@@ -1,7 +1,7 @@
 import QtQuick
 
 QtObject {
-    property color bgPrimary: '#ba222222'
+    property color bgPrimary: "#ba222222"
     property color bgSecondary: "#444444"
     property color bgHover: "#333333"
     property color bgBorder: '#333333'
@@ -28,10 +28,14 @@ QtObject {
 
     // Popup stuff
     property real popupMargin: 10
+    property real paddingS: 14
     property real paddingM: 24
     property real paddingL: 42
     
     property real textSizeS: 12
     property real textSizeM: 16
     property real textSizeL: 18
+
+    property real revealDuration: 300
+    property real revealEasing: Easing.InOutQuint
 }
